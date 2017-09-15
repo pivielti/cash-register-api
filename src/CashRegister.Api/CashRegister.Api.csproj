@@ -16,4 +16,10 @@
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CashRegister.Domain\CashRegister.Domain.csproj" />
+    <ProjectReference Include="..\CashRegister.Infrastructure\CashRegister.Infrastructure.csproj" />
+    <ProjectReference Include="..\CashRegister.Services\CashRegister.Services.csproj" />
+  </ItemGroup>
+
 </Project>
