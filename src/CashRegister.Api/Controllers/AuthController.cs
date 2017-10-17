@@ -30,6 +30,7 @@ namespace CashRegister.Api.Controllers
         }
 
         [AllowAnonymous]
+        [HttpPost("login")]
         public IActionResult Login(LoginPassword model)
         {
             if (!ModelState.IsValid)
@@ -49,9 +50,16 @@ namespace CashRegister.Api.Controllers
             return Ok($"Bearer {token}");
         }
 
+        [HttpPost("refresh")]
         public IActionResult TokenRefresh()
         {
-            return Ok();
+            string token = _httpContext.Request.Headers["Authorization"];
+
+            token = _tokenService.UpdateToken(token);
+
+            _httpContext.AddAuthorizationHeader(token);
+
+            return Ok($"Bearer {token}");
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using CashRegister.Domain.Authentication;
 using CashRegister.Domain.CashManagement;
 using CashRegister.Domain.Operations;
@@ -9,6 +10,11 @@ namespace CashRegister.Infrastructure
 {
     public class CashRegisterContext : DbContext
     {
+        public CashRegisterContext(DbContextOptions<CashRegisterContext> options)
+            : base(options)
+        {
+        }
+
         public DbSet<User> Users { get; set; }
 
         public DbSet<Role> Roles { get; set; }
@@ -25,9 +31,53 @@ namespace CashRegister.Infrastructure
 
         public DbSet<Registration> CashRegistrations { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        protected override void OnModelCreating(ModelBuilder builder)
         {
-            optionsBuilder.UseSqlite("Data Source=cash.db");
+            base.OnModelCreating(builder);
+
+            builder.Entity<UserRole>()
+            .HasKey(t => new { t.UserId, t.RoleId });
+
+            builder.Entity<UserRole>()
+                .HasOne(pt => pt.User)
+                .WithMany(p => p.UserRoles)
+                .HasForeignKey(pt => pt.UserId);
+
+            builder.Entity<UserRole>()
+                .HasOne(pt => pt.Role)
+                .WithMany(t => t.UserRoles)
+                .HasForeignKey(pt => pt.RoleId);
+        }
+
+        public void CreateDefaultAccount(IPasswordService passwordService)
+        {
+            if (Users.Any(u => u.Login == "administrator"))
+                return;
+            // create admin role
+            var adminRole = new Role()
+            {
+                Name = "admin"
+            };
+            Roles.Add(adminRole);
+
+            // create admin user
+            var salt = string.Empty;
+            var hash = passwordService.HashPassword("password", out salt);
+            var adminUser = new User()
+            {
+                Login = "administrator",
+                PasswordHash = hash,
+                HashSalt = salt
+            };
+
+            // link user and role
+            UserRoles.Add(new UserRole
+            {
+                Role = adminRole,
+                User = adminUser
+            });
+
+            SaveChanges();
         }
     }
 }

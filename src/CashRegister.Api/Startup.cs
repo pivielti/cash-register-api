@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json.Converters;
 using Microsoft.AspNetCore.Http;
+using CashRegister.Domain.Authentication;
 
 namespace CashRegister.Api
 {
@@ -89,13 +90,13 @@ namespace CashRegister.Api
             );
 
             // Force database migration
-            // using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
-            // {
-            //     serviceScope.ServiceProvider.GetService<ApplicationDbContext>().Database.Migrate();
-            //     var userManager = app.ApplicationServices.GetService<UserManager<ApplicationUser>>();
-            //     var roleManager = app.ApplicationServices.GetService<RoleManager<IdentityRole>>();
-            //     serviceScope.ServiceProvider.GetService<ApplicationDbContext>().EnsureSeedData(userManager, roleManager);
-            // }
+            using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
+            {
+                var passwordService = app.ApplicationServices.GetService<IPasswordService>();
+                var dbContext = serviceScope.ServiceProvider.GetService<CashRegisterContext>();
+                dbContext.Database.Migrate();
+                dbContext.CreateDefaultAccount(passwordService);
+            }
 
             app.UseAuthentication();
 
