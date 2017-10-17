@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CashRegister.Services
+namespace CashRegister.Services.Settings
 {
     public class AuthenticationSettings
     {
